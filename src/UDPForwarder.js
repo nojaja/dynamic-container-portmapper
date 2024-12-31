@@ -59,17 +59,6 @@ class UDPForwarder extends EventEmitter {
     }
 
     async forwardMessage(msg, rinfo) {
-        if (this.suspended) {
-            await new Promise((resolve) => {
-                const interval = setInterval(() => {
-                    if (!this.suspended) {
-                        clearInterval(interval);
-                        resolve();
-                    }
-                }, 100);
-            });
-        }
-        
         const clientKey = `${rinfo.address}:${rinfo.port}`;
         let clientConnection = this.clientConnections.get(clientKey);
 
@@ -100,6 +89,16 @@ class UDPForwarder extends EventEmitter {
                 forwardSocket.close();
                 this.clientConnections.delete(clientKey);
                 this.emit('disconnection', this.clientConnections.size);
+            });
+        }
+        if (this.suspended) {
+            await new Promise((resolve) => {
+                const interval = setInterval(() => {
+                    if (!this.suspended) {
+                        clearInterval(interval);
+                        resolve();
+                    }
+                }, 100);
             });
         }
         // 最終アクセス時間の更新
@@ -142,10 +141,12 @@ class UDPForwarder extends EventEmitter {
 
     suspend() {
         this.suspended = true;
+        console.log(`${this.caption} UDPポート転送 サスペンド`);
     }
 
     resume() {
         this.suspended = false;
+        console.log(`${this.caption} UDPポート転送 レジューム`);
     }
 }
 

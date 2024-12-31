@@ -27,12 +27,42 @@ class ContainerController {
       const status = await this.getContainerStatus(containerId);
       const containerName = await this.getContainerName(containerId);
       if (status !== 'paused') {
-        throw new Error(`コンテナ${containerName}(${containerId})は再開可能な状態ではありません`);
+        throw new Error(`コンテナ${containerName}(${containerId})は再開可能な状態ではありません: ${status}`);
       }
       await container.unpause();
       console.log(`コンテナ${containerName}(${containerId})を再開しました。`);
     } catch (error) {
       console.error(`コンテナ${containerId}の再開に失敗しました: ${error.message}`);
+    }
+  }
+
+  async stopContainer(containerId) {
+    try {
+      const container = this.docker.getContainer(containerId);
+      const status = await this.getContainerStatus(containerId);
+      const containerName = await this.getContainerName(containerId);
+      if (status !== 'running') {
+        throw new Error(`コンテナ${containerName}(${containerId})は停止可能な状態ではありません: ${status}`);
+      }
+      await container.stop();
+      console.log(`コンテナ${containerName}(${containerId})を停止しました。`);
+    } catch (error) {
+      console.error(`コンテナ${containerId}の停止に失敗しました: ${error.message}`);
+    }
+  }
+
+  async startContainer(containerId) {
+    try {
+      const container = this.docker.getContainer(containerId);
+      const status = await this.getContainerStatus(containerId);
+      const containerName = await this.getContainerName(containerId);
+      if (status !== 'exited') {
+        throw new Error(`コンテナ${containerName}(${containerId})は開始可能な状態ではありません: ${status}`);
+      }
+      await container.start();
+      console.log(`コンテナ${containerName}(${containerId})を開始しました。`);
+    } catch (error) {
+      console.error(`コンテナ${containerId}の開始に失敗しました: ${error.message}`);
     }
   }
 

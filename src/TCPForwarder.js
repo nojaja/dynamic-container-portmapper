@@ -146,10 +146,12 @@ class TCPForwarder extends EventEmitter {
 
     suspend() {
         this.suspended = true;
+        console.log(`${this.caption} TCPポート転送 サスペンド`);
     }
 
     resume() {
         this.suspended = false;
+        console.log(`${this.caption} TCPポート転送 レジューム`);
     }
 }
 

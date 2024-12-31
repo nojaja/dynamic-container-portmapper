@@ -22,7 +22,8 @@ class Observer extends EventEmitter {
     console.log(`${forwarder.caption} ${forwarder.protocol} 接続数が変更されました: ${connectionCount}`);
     this.connectionCount++;
     if (this.connectionCount === 1) {
-      await this.containerController.unpauseContainer(this.containerName);
+      if(forwarder.toggle=="paused") await this.containerController.unpauseContainer(this.containerName);
+      if(forwarder.toggle=="stop") await this.containerController.startContainer(this.containerName);
       this.emit('resume');
     }
   }
@@ -31,8 +32,17 @@ class Observer extends EventEmitter {
     console.log(`${forwarder.caption} ${forwarder.protocol} 接続数が変更されました: ${connectionCount}`);
     this.connectionCount--;
     if (this.connectionCount === 0) {
-      await this.containerController.pauseContainer(this.containerName);
-      this.emit('suspend');
+      await new Promise((resolve) => {
+        const interval = setInterval(() => {
+                clearInterval(interval);
+                resolve();
+        }, forwarder.wait_period);
+      });
+      if (this.connectionCount === 0) {
+        if(forwarder.toggle=="paused") await this.containerController.pauseContainer(this.containerName);
+        if(forwarder.toggle=="stop") await this.containerController.stopContainer(this.containerName);
+        this.emit('suspend');
+      }
     }
   }
 }
