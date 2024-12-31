@@ -1,0 +1,36 @@
+{
+  "name": "dynamic-container-portmapper",
+  "version": "1.0.0",
+  "description": "Port Forwarding with Docker Container Management",
+  "main": "./dist/index.bundle.js",
+  "scripts": {
+    "start": "node ./src/index.js",
+    "test": "jest",
+    "test2": "cross-env NODE_ENV=test webpack && jest",
+    "build": "webpack"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "transform": {
+      "^.+\\.js$": "babel-jest"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nojaja/dynamic-container-portmapper.git"
+  },
+  "author": "nojaja <free.riccia@gmail.com> (https://github.com/nojaja)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nojaja/dynamic-container-portmapper/issues"
+  },
+  "homepage": "https://github.com/nojaja/dynamic-container-portmapper#readme",
+  "devDependencies": {
+    "babel-jest": "^26.6.3",
+    "cross-env": "^7.0.3",
+    "dockerode": "^4.0.2",
+    "jest": "^26.6.3",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  }
+}
