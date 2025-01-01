@@ -3,11 +3,12 @@
 const TCPForwarder = require('./TCPForwarder');
 
 // TCPForwarder のインスタンスを作成
+const caption = 'ラベルA'
 const listenPort = 7773;//7778;// 待ち受けポート
 const forwardPort = 7772;//7777;// 転送先ポート
 const forwardHost = 'localhost';// 転送先のアドレス
 
-const forwarder = new TCPForwarder(listenPort, forwardPort, forwardHost);
+const forwarder = new TCPForwarder(caption, listenPort, forwardPort, forwardHost);
 
 forwarder.on('connection', (connectionCount) => {
     console.log(`接続数が変更されました: ${connectionCount}`);

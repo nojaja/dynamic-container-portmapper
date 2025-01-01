@@ -1,18 +1,17 @@
-const fs = require('fs').promises;
+const fs = require('fs');
 const Forwarder = require('./Forwarder');
 const Observer = require('./Observer');
 
 async function main() {
   try {
-    const ruleData = await fs.readFile('./rule.json', 'utf8');
-    const rules = JSON.parse(ruleData);
+    const config = JSON.parse(fs.readFileSync('./config.json', 'utf-8'));
 
     const forwarders = [];
     const observers = [];
 
-    for (const rule of rules) {
+    for (const rule of config.rules) {
       const forwarder = new Forwarder(rule);
-      const observer = new Observer(rule);
+      const observer = new Observer(config);
 
       forwarder.forwarders.forEach(f => observer.addForwarder(f));
 

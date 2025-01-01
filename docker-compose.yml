@@ -1,0 +1,29 @@
+version: '3.4'
+
+name: dynamic-container-portmapper
+services:
+  portmapper01:
+    container_name: server01
+    restart: always
+    image: dynamic-container-portmapper:latest
+    ports:
+      - 19132:19132/udp
+      - 19133:19133/udp
+      - 19134:19134/udp
+      - 19135:19135/udp
+      - 7770:7770/tcp
+      - 7771:7771/tcp
+      - 7772:7772/tcp
+      - 7777:7777/tcp
+      - 7777:7777/udp
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1000m
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

@@ -2,11 +2,8 @@ const EventEmitter = require('events');
 const ContainerController = require('./ContainerController');
 
 class Observer extends EventEmitter {
-  constructor(rule) {
+  constructor(config) {
     super();
-    this.caption = rule.caption || ""
-    this.containerName = rule.containerName;
-    this.triggerRules = rule.forwardRule.filter(rule => rule.isTrigger);
     this.connectionCount = 0;
     this.containerController = new ContainerController();
   }
@@ -22,8 +19,8 @@ class Observer extends EventEmitter {
     console.log(`${forwarder.caption} ${forwarder.protocol} 接続数が変更されました: ${connectionCount}`);
     this.connectionCount++;
     if (this.connectionCount === 1) {
-      if(forwarder.toggle=="paused") await this.containerController.unpauseContainer(this.containerName);
-      if(forwarder.toggle=="stop") await this.containerController.startContainer(this.containerName);
+      if(forwarder.toggle=="paused") await this.containerController.unpauseContainer(forwarder.containerId);
+      if(forwarder.toggle=="stop") await this.containerController.startContainer(forwarder.containerId);
       this.emit('resume');
     }
   }
@@ -39,8 +36,8 @@ class Observer extends EventEmitter {
         }, forwarder.wait_period);
       });
       if (this.connectionCount === 0) {
-        if(forwarder.toggle=="paused") await this.containerController.pauseContainer(this.containerName);
-        if(forwarder.toggle=="stop") await this.containerController.stopContainer(this.containerName);
+        if(forwarder.toggle=="paused") await this.containerController.pauseContainer(forwarder.containerId);
+        if(forwarder.toggle=="stop") await this.containerController.stopContainer(forwarder.containerId);
         this.emit('suspend');
       }
     }

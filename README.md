@@ -73,6 +73,11 @@ Run the test suite:
 npm test
 ```
 
+## 
+```
+docker build -t dynamic-container-portmapper .
+docker compose up -d --build
+```
 ## License
 
 This project is licensed under the MIT License.

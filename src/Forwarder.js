@@ -10,6 +10,7 @@ class Forwarder {
       forwarderClass.isTrigger = forwardRule.isTrigger;
       forwarderClass.toggle = rule.toggle || "stop";
       forwarderClass.wait_period = rule.wait_period || 1000;
+      forwarderClass.containerId = rule.containerId || "";
       return forwarderClass
     });
   }

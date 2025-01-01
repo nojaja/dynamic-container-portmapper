@@ -16,7 +16,7 @@ Node.jsを使用してUDPポート転送プログラムを作成し、それに�
 - 転送先からの複数回のレスポンスを受け取り、アクセス元に返却する
 - プログラムとテストコードは、可読性が高く、適切にコメントされたものにしてください。
 - エラーハンドリングも考慮に入れてください。
-- アクセス元からの接続数が増加するとconnectionイベント、減少するとdisconnectionイベントを発行し、onメソッドでハンドリングが出来るようにする、イベントの引数は接続数とする
+- アクセス元からの接続数が増加するとconnectionイベント、減少するとdisconnectionイベントを発行し、onメソッドでハンドリングが出来るようにする、イベントの引数は接続数(clientConnections.size)とする
 - clientConnections.clear()時もdisconnectionイベントを発行する
 - 一時停止機能(suspend)を実装してください
   - forwardMessageは非同期で動作して、一時停止が解除されるのを待って動作するようにしてください。
@@ -25,7 +25,13 @@ Node.jsを使用してUDPポート転送プログラムを作成し、それに�
 
 ## UDPForwarderクラスのメソッド要件
 
-- constructor(listenPort, forwardPort, forwardHost) 
+- constructor(caption, listenPort, forwardPort, forwardHost) 
+  - caption: ログメッセージに使用される識別子
+  - listenPort: リッスンするポート
+  - forwardPort: 転送先のポート
+  - forwardHost: 転送先のホスト
+  - `this.protocol`プロパティを追加、'udp'に設定
+  - `this.isSuspended`プロパティを追加、'false'に設定
 - async start()
   - 非同期でPromiseを返す
   - serverのerrorイベントをハンドリング
@@ -33,7 +39,8 @@ Node.jsを使用してUDPポート転送プログラムを作成し、それに�
   - serverのlisteningイベントをハンドリング
 - async stop()
   - 非同期でPromiseを返す
-  - clientConnectionsに登録されているすべての接続を切断
+  - クライアント接続のクリーンアップ
+    - clientConnectionsに登録されているすべての接続を切断
 - async forwardMessage(msg, rinfo)
   - 非同期でPromiseを返す
   - 新規アクセスの場合はforwardSocket作成
@@ -57,10 +64,10 @@ Node.jsを使用してUDPポート転送プログラムを作成し、それに�
 
 ## ファイル構成
 
-- メインプログラム: ./src/udp_index.js
-- 処理本体(class): ./src/UDPForwarder.js
-- テストコード配置パス: ./src/__tests__/
-- 指示の無いファイルはファイルパスを表記
+- メインプログラム: `./src/udp_index.js`
+- 処理本体(class): `./src/UDPForwarder.js`
+- テストコード配置パス: `./src/__tests__/`
+- その他のファイルはファイルパスをヘッダに明記すること
 
 ## テストコード要件
 
@@ -79,9 +86,7 @@ Node.jsを使用してUDPポート転送プログラムを作成し、それに�
 
 1. UDPポート転送プログラムのソースコードを作成
 2. Jestを使用したテストコードを作成
-3. テストコードの配置パスとファイル名を指定
-4. git公開用のreadme.md
-5. UDPForwarderクラスの使い方を開発用LLMに伝えるためのプロンプト
+3. UDPForwarderクラスの使い方を開発用LLMに伝えるためのプロンプト
 
 プログラムとテストコードは、可読性が高く、適切にコメントされたものにしてください。
 また、エラーハンドリングも考慮に入れてください。

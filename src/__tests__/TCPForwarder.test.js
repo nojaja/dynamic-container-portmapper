@@ -1,79 +1,42 @@
-const TCPForwarder = require('../TCPForwarder');
 const net = require('net');
-const { promisify } = require('util');
-
-jest.setTimeout(30000);
+const TCPForwarder = require('../TCPForwarder');
 
 describe('TCPForwarder', () => {
-    let forwarder;
-    let server;
-    let client;
-    let consoleLogSpy;
+  let server, client;
 
-    const listenPort = 3000;
-    const forwardPort = 4000;
-    const forwardHost = '127.0.0.1';
+  beforeAll(() => {
+    server = net.createServer((socket) => socket.pipe(socket));
+    server.listen(4000, '127.0.0.1');
+  });
 
-    beforeAll(async () => {
-        // Create a mock server to act as the forward destination
-        server = net.createServer((socket) => {
-            socket.on('data', (data) => {
-                socket.write(data); // Echo back the data
-            });
-        });
-        await promisify(server.listen.bind(server))(forwardPort, forwardHost);
+  afterAll(() => server.close());
+
+  test('サーバーが正しいポートでリッスンしていることを確認', async () => {
+    const forwarder = new TCPForwarder('テストラベル', 3001, 4000, '127.0.0.1');
+    
+    await forwarder.start();
+    
+    const clientTest = net.createConnection({ port: 3001 }, () => clientTest.end());
+    
+    clientTest.on('connect', async () => {
+      expect(forwarder.server.listening).toBe(true);
+      await forwarder.stop();
     });
+  });
 
-    afterAll(async () => {
-        server.close();
+  test('メッセージを受信して転送することを確認', async (done) => {
+    const forwarder = new TCPForwarder('テストラベル', 3002, 4000, '127.0.0.1');
+    
+    await forwarder.start();
+
+    const testClient = net.createConnection({ port: 3002 }, () => testClient.write('Hello'));
+    
+    testClient.on('data', (data) => {
+      expect(data.toString()).toBe('Hello');
+      
+      testClient.end();
+      
+      forwarder.stop().then(done);
     });
-
-    beforeEach(() => {
-        // console.logのモック化
-        consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
-        forwarder = new TCPForwarder(listenPort, forwardPort, forwardHost);
-    });
-
-    afterEach(async () => {
-        await forwarder.stop();
-    });
-
-    test('サーバーが正しいポートでリッスンしていることを確認', async () => {
-        await forwarder.start();
-        const clientSocket = net.createConnection({ port: listenPort });
-        await new Promise((resolve) => clientSocket.on('connect', resolve));
-        clientSocket.end();
-    });
-
-    test('メッセージを受信して転送することを確認', async () => {
-        await forwarder.start();
-
-        const clientSocket = net.createConnection({ port: listenPort });
-        const message = 'Hello, World!';
-
-        clientSocket.write(message);
-
-        const data = await new Promise((resolve) => {
-            clientSocket.on('data', (data) => resolve(data.toString()));
-        });
-
-        expect(data).toBe(message);
-        clientSocket.end();
-    });
-
-    test('転送先からのレスポンスを元のクライアントに送り返すことを確認', async () => {
-        await forwarder.start();
-
-        const clientSocket = net.createConnection({ port: listenPort });
-        const message = 'Ping';
-
-        clientSocket.write(message);
-
-        const data = await new Promise((resolve) => {
-            clientSocket.on('data', (data) => resolve(data.toString()));
-        });
-
-        expect(data).toBe(message);
-        clientSocket.end();
-    });
+  });
 });

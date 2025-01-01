@@ -1,0 +1,157 @@
+{
+    "conf": {},
+    "rules": [
+        {
+            "caption": "minecraft_server01",
+            "containerId": "a5c99da3549a",
+            "toggle": "stop",
+            "wait_period": 60000,
+            "forwardRule": [
+                {
+                    "Protocol": "udp",
+                    "listenPort": 19132,
+                    "forwardPort": 29132,
+                    "forwardHost": "host.docker.internal",
+                    "isTrigger": true
+                }
+            ]
+        },
+        {
+            "caption": "minecraft_server02",
+            "containerId": "db41cb6a5bdf",
+            "toggle": "stop",
+            "wait_period": 60000,
+            "forwardRule": [
+                {
+                    "Protocol": "udp",
+                    "listenPort": 19133,
+                    "forwardPort": 29133,
+                    "forwardHost": "host.docker.internal",
+                    "isTrigger": true
+                }
+            ]
+        },
+        {
+            "caption": "minecraft_server03",
+            "containerId": "d3be6c389624",
+            "toggle": "stop",
+            "wait_period": 60000,
+            "forwardRule": [
+                {
+                    "Protocol": "udp",
+                    "listenPort": 19134,
+                    "forwardPort": 29134,
+                    "forwardHost": "host.docker.internal",
+                    "isTrigger": true
+                }
+            ]
+        },
+        {
+            "caption": "minecraft_server04",
+            "containerId": "7a137060fae5",
+            "toggle": "stop",
+            "wait_period": 60000,
+            "forwardRule": [
+                {
+                    "Protocol": "udp",
+                    "listenPort": 39135,
+                    "forwardPort": 29135,
+                    "forwardHost": "host.docker.internal",
+                    "isTrigger": true
+                }
+            ]
+        },
+        {
+            "caption": "terraria-world01",
+            "containerId": "a21792272d3a",
+            "toggle": "stop",
+            "forwardRule": [
+                {
+                    "Protocol": "tcp",
+                    "listenPort": 7770,
+                    "forwardPort": 17770,
+                    "forwardHost": "host.docker.internal",
+                    "isTrigger": true
+                }
+            ]
+        },
+        {
+            "caption": "terraria-world02",
+            "containerId": "7045752a64d5",
+            "toggle": "stop",
+            "forwardRule": [
+                {
+                    "Protocol": "tcp",
+                    "listenPort": 7771,
+                    "forwardPort": 17771,
+                    "forwardHost": "host.docker.internal",
+                    "isTrigger": true
+                }
+            ]
+        },
+        {
+            "caption": "terraria-world03",
+            "containerId": "6a8b840e6790",
+            "toggle": "stop",
+            "forwardRule": [
+                {
+                    "Protocol": "tcp",
+                    "listenPort": 7772,
+                    "forwardPort": 17772,
+                    "forwardHost": "host.docker.internal",
+                    "isTrigger": true
+                }
+            ]
+        },
+        {
+            "caption": "satisfactory-server",
+            "containerId": "08ee6ecac8d0",
+            "forwardRule": [
+                {
+                    "Protocol": "tcp",
+                    "listenPort": 7777,
+                    "forwardPort": 17777,
+                    "forwardHost": "host.docker.internal"
+                },
+                {
+                    "Protocol": "udp",
+                    "listenPort": 7777,
+                    "forwardPort": 17777,
+                    "forwardHost": "host.docker.internal",
+                    "isTrigger": true
+                }
+            ]
+        },
+        {
+            "caption": "7dtdserver01test",
+            "containerId": "c4f7ab5d09d3",
+            "forwardRule": [
+                {
+                    "Protocol": "tcp",
+                    "listenPort": 26903,
+                    "forwardPort": 26900,
+                    "forwardHost": "localhost"
+                },
+                {
+                    "Protocol": "udp",
+                    "listenPort": 26903,
+                    "forwardPort": 26900,
+                    "forwardHost": "localhost",
+                    "isTrigger": true
+                },
+                {
+                    "Protocol": "udp",
+                    "listenPort": 26904,
+                    "forwardPort": 26901,
+                    "forwardHost": "localhost"
+                },
+                {
+                    "Protocol": "udp",
+                    "listenPort": 26905,
+                    "forwardPort": 26902,
+                    "forwardHost": "localhost"
+                }
+            ]
+        }
+    ]
+}

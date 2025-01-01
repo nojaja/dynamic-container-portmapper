@@ -1,49 +1,62 @@
-Node.jsを使用して'rule.json'で定義された設定を読み込み、TCPとUDPのポート転送を実行するプログラムを作成してください。
+Node.jsを使用して'config.json'で定義された設定を読み込み、TCPとUDPのポート転送を実行するプログラムを作成してください。
 以下の要件を満たすようにしてください：
 
 ## 主な機能
 - TCPとUDPのポート転送
-- Dockerコンテナの動的な一時停止/再開
-- 設定ファイルによる柔軟な転送ルール定義
+- Dockerコンテナの動的な起動/停止または一時停止/再開
+- 設定ファイル（config.json）による柔軟な転送ルール定義
 - 接続状態に基づくコンテナ管理
+- アプリケーション自体をDockerコンテナとして稼働可能
 
-## 設定ファイル (rule.json)
-### 概要
-JSON形式で、以下の構造を持つ:
-- containerName: Dockerコンテナ名
-- forwardRule: 転送ルールの配列
-  - Protocol: 'tcp' または 'udp'
-  - listenPort: 待ち受けポート
-  - forwardPort: 転送先ポート
-  - forwardHost: 転送先ホスト（オプション、デフォルトは`localhost`）
-  - isTrigger: コンテナ制御のトリガーとなるルール（オプション）
+## 設計概要
+### 設定ファイル (config.json)
+- JSON形式で、以下の構造を持つ:
+  - rules: 以下の構造を持つ:
+    - caption: 設定セットの表示名
+    - containerId: DockerコンテナId
+    - toggleStrategy: Dockerの状態変更を起動/停止にするか一時停止/再開にするか（オプション、デフォルトは`stop`）
+    - wait_period: アクセスが0になってから状態変更するまでの待ち時間（オプション、デフォルトは`60000`）
+    - forwardRule: 転送ルールの配列
+      - protocol: 'tcp' または 'udp'
+      - listenPort: 待ち受けポート
+      - forwardPort: 転送先ポート
+      - forwardHost: 転送先ホスト（オプション、デフォルトは`localhost`）
+      - isTrigger: コンテナ制御のトリガーとなるルール（オプション）
+
 ### 設定ファイル例
-```rule.json
-[
+```config.json
+{
+   conf:{}
+   rules:[
    {
-      containerName: '81b2989f543e',
-      forwardRule:[
-         {Protocol:'udp', listenPort:19137, forwardPort:19134, forwardHost:'localhost'},
-         {Protocol:'udp', listenPort:19136, forwardPort:19135, forwardHost:'localhost', isTrigger:true},
-         {Protocol:'tcp', listenPort:7777, forwardPort:7777, forwardHost:'localhost'}
+      "caption": "nginx",
+      "containerId": "81b2989f543e",
+      "toggleStrategy": "paused",
+      "wait_period": "180000",
+      "forwardRule": [
+         {"Protocol": "tcp", "listenPort": 7777, "forwardPort": 7777, "forwardHost": "localhost", "isTrigger": true}
       ]
    },
    {
-      containerName: '81b2989f543e',
-      forwardRule:[
-         {Protocol:'udp', listenPort:19137, forwardPort:19134, forwardHost:'localhost'},
-         {Protocol:'udp', listenPort:19136, forwardPort:19135, forwardHost:'localhost', isTrigger:true},
-         {Protocol:'tcp', listenPort:7777, forwardPort:7777, forwardHost:'localhost'}
+      "caption": "server",
+      "containerId": "91b2989f543e",
+      "toggleStrategy": "stop",
+      "wait_period": "180000",
+      "forwardRule": [
+         {"Protocol": "udp", "listenPort": 19137, "forwardPort": 19134, "forwardHost": "localhost"},
+         {"Protocol": "udp", "listenPort": 19136, "forwardPort": 19135, "forwardHost": "localhost", "isTrigger": true},
+         {"Protocol": "tcp", "listenPort": 7777, "forwardPort": 7777, "forwardHost": "localhost"}
       ]
    }
-]
+   ]
+}
 ```
 
 ## 技術要件
 
 - Node.js バージョン: v11.13.0
 - Webpack バージョン: v5.74 (バンドル化に使用)
-- Jest バージョン: v26.6.3
+- Jest バージョン: v26.6.3 (テストフレームワーク)
 
 ## 前提条件
 
@@ -61,26 +74,27 @@ JSON形式で、以下の構造を持つ:
 - UDP転送クラス(UDPForwarder): `./src/UDPForwarder.js`
 - Dockerコンテナの操作クラス(ContainerController): `./src/ContainerController.js`
 - テストコード配置パス: `./src/__tests__/`
-- 設定ファイル: `./rule.json`
+- 設定ファイル: `./config.json`
 - Webpack設定: `./webpack.config.js`
 - README: `./README.md`
+- Dockerfile: `./docker/Dockerfile`
 - その他のファイルはファイルパスをヘッダに明記すること
 
 ## 主要コンポーネント
 
-- 実行サンプル
-  - 設定ファイル(rule.json)の読み込み
+- index.js
+  - 設定ファイル(config.json)の読み込み
   - Forwarderとobserverの初期化と管理
-- 転送抽象化クラス
+- Forwarderクラス
   - TCPとUDP転送を抽象化
-  - 複数の転送設定を管理
+  - 複数の転送設定（rule）をまとめて管理。
   - TCPForwarderとUDPForwarderの呼び出し:
     - 各ルールに基づき、TCPまたはUDPのポート転送を開始します。
   - サーバーの起動と停止:
     - プログラム起動時にすべての転送を開始し、終了時には停止します。
-- 接続数監視クラス
+- Observerクラス
   - Forwarderの接続状態を監視
-  - コンテナの一時停止/再開を制御
+  - Dockerコンテナの起動/停止もしくは一時停止/再開を制御
   - `isTrigger:true`が付与されている接続先の`connection`と`disconnection`イベントを監視します
   - 接続数がnから0になったらContainerControllerクラスのpauseContainerを使ってコンテナを一時停止します
   - 接続数が0から1になったらContainerControllerクラスのunpauseContainerを使ってコンテナを再開します
@@ -92,7 +106,7 @@ JSON形式で、以下の構造を持つ:
 
 Forwarder クラス内に以下の関数を実装してください：
 - ForwarderはTCPまたはUDP転送を抽象化するクラス。
-- 複数の転送設定(forwardRule部分)をまとめて実行できる
+- 複数の転送設定(rule部分)をまとめて実行できる
 - `constructor(rule)`: コンストラクタ
   - protocolをtoLowerCaseして'udp'ならUDPForwarder、'tcp'ならTCPForwarderをnewする
 - `start()`: newしたUDPForwarderとTCPForwarderのstart()を実行する
@@ -103,7 +117,7 @@ Forwarder クラス内に以下の関数を実装してください：
 Observer クラス内に以下の関数を実装してください：
 - Forwarderの接続状態を監視
 - コンテナの一時停止/再開を制御
-- `constructor(rule)`: コンストラクタ
+- `constructor(config)`: コンストラクタ
   - containerNameとisTriggerの対象を取得する
 
 ## TCPForwarderクラスの使い方
@@ -111,10 +125,13 @@ Observer クラス内に以下の関数を実装してください：
 TCPForwarderクラスは、Node.jsを使用してTCPポート転送を実装するためのクラスです。以下にその使用方法と主要な機能を説明します：
 
 1. クラスのインスタンス化:
-   const forwarder = new TCPForwarder(listenPort, forwardHost, forwardPort);
+   const forwarder = new TCPForwarder(caption, listenPort, forwardPort, forwardHost);
+   - caption: ログメッセージに使用される識別子
    - listenPort: 待ち受けるポート番号
-   - forwardHost: 転送先のホスト名またはIPアドレス
    - forwardPort: 転送先のポート番号
+   - forwardHost: 転送先のホスト名またはIPアドレス
+   - `this.protocol`プロパティを追加、'udp'に設定
+   - `this.isSuspended`プロパティを追加、'false'に設定
 
 2. サーバーの起動:
    await forwarder.start();
@@ -136,7 +153,7 @@ TCPForwarderクラスは、Node.jsを使用してTCPポート転送を実装す�
 const TCPForwarder = require('./TCPForwarder');
 
 async function main() {
-  const forwarder = new TCPForwarder(8080, 'example.com', 80);
+  const forwarder = new TCPForwarder('サーバ', 8080, 80, 'example.com');
   
   try {
     await forwarder.start();
@@ -164,8 +181,9 @@ UDPForwarderクラスは、UDPポート転送を実装するNode.jsクラスで�
 
 1. クラスの初期化:
    ```javascript
-   const forwarder = new UDPForwarder(listenPort, forwardPort, forwardHost);
+   const forwarder = new UDPForwarder(caption, listenPort, forwardPort, forwardHost);
    ```
+   - caption: ログメッセージに使用される識別子
    - listenPort: 待ち受けるポート番号
    - forwardPort: 転送先のポート番号
    - forwardHost: 転送先のホスト名またはIPアドレス
@@ -222,8 +240,9 @@ ContainerControllerクラスは、Node.jsアプリケーションでDockerコン
 1. クラスのインポートと初期化
 
 ```javascript
+const conf = {}
 const ContainerController = require('./ContainerController');
-const controller = new ContainerController();
+const controller = new ContainerController(conf);
 ```
 
 2. コンテナの一時停止
@@ -242,7 +261,24 @@ await controller.unpauseContainer('containerId');
    - 一時停止されたコンテナを再開します。
    - コンテナが一時停止状態でない場合はエラーをスローします。
 
-4. 稼働中コンテナ一覧の表示
+4. コンテナの停止
+
+```javascript
+await controller.stopContainer('containerId');
+```
+   - 指定されたコンテナを停止します。
+   - コンテナが実行中でない場合はエラーをスローします。
+
+5. コンテナの開始
+
+```javascript
+await controller.startContainer('containerId');
+```
+   - 一時停止されたコンテナを開始します。
+   - コンテナが停止状態でない場合はエラーをスローします。
+
+
+6. 稼働中コンテナ一覧の表示
 
 ```javascript
 await controller.listRunningContainers();
@@ -250,7 +286,7 @@ await controller.listRunningContainers();
    - 稼働中のコンテナ一覧を表示します。
    - 各コンテナのID、名前、イメージ、状態、ステータスを表示します。
 
-5. コンテナの状態表示
+7. コンテナの状態表示
 
 ```javascript
 await controller.getContainerStatus('containerId');
@@ -258,11 +294,19 @@ await controller.getContainerStatus('containerId');
    - 指定されたコンテナの状態を取得します。
    - エラーが発生した場合はnullを返します。
 
+8. コンテナの名称表示
+
+```javascript
+await controller.getContainerName('containerId');
+```
+   - 指定されたコンテナの名称を取得します。
+   - エラーが発生した場合は""を返します。
+
 使用例：
 
 ```javascript
 async function main() {
-  const controller = new ContainerController();
+  const controller = new ContainerController({});
   const containerId = 'your_container_id';
 
   // コンテナ一覧の表示
@@ -317,5 +361,6 @@ main().catch(error => console.error('エラーが発生しました:', error));
 3. git公開用のreadme.md
 4. 各種設定手順
 5. Forwarderクラスの使い方を開発用LLMに伝えるためのプロンプト
+6. Dockerコンテナとして稼働させるためのDockerfile
 
 プログラム、テストコード、README.mdは可読性が高く、適切にコメントされたものにしてください。また、エラーハンドリングも考慮に入れてください。
